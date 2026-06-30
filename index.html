@@ -4,6 +4,36 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Planejador da Fazenda</title>
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+  import { getDatabase, ref, set, onValue } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyB-zGsrrIFaPJ8DVIIA5SI88GaM7MGYoyY",
+    authDomain: "fazenda-marcelo.firebaseapp.com",
+    databaseURL: "https://fazenda-marcelo-default-rtdb.firebaseio.com",
+    projectId: "fazenda-marcelo",
+    storageBucket: "fazenda-marcelo.firebasestorage.app",
+    messagingSenderId: "405114144510",
+    appId: "1:405114144510:web:5064a4e1a7fec6ac3787af"
+  };
+
+  let app, db, dbRef;
+  let firebaseReady = false;
+
+  try {
+    app = initializeApp(firebaseConfig);
+    db = getDatabase(app);
+    dbRef = ref(db, 'tasks');
+    firebaseReady = true;
+  } catch (e) {
+    console.warn('Firebase não configurado, usando localStorage local.', e);
+  }
+
+  window.__firebase = { firebaseReady, set, onValue, dbRef };
+  window.__firebaseLoaded = true;
+  window.dispatchEvent(new Event('firebase-ready'));
+</script>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=Inter:wght@400;500;600&display=swap');
 
@@ -410,7 +440,7 @@
 <header>
   <div>
     <h1>🌾 Planejador da Fazenda</h1>
-    <small>Organização mensal de tarefas</small>
+    <small id="syncIndicator">Organização mensal de tarefas</small>
   </div>
   <div style="display:flex;gap:8px;flex-shrink:0">
     <button class="btn-cal" onclick="exportICS()">📅 Calendário</button>
@@ -535,10 +565,55 @@ let searchText = '';
 
 function load() {
   try { tasks = JSON.parse(localStorage.getItem('fazenda_tasks') || '[]'); } catch { tasks = []; }
-  if (!tasks.length) seedDemo();
+
+  const fb = window.__firebase;
+  if (fb && fb.firebaseReady) {
+    setSyncStatus('syncing');
+    fb.onValue(fb.dbRef, (snapshot) => {
+      const data = snapshot.val();
+      if (data) {
+        tasks = data;
+      } else if (!tasks.length) {
+        seedDemo();
+        return; // seedDemo() já chama save()
+      }
+      setSyncStatus('online');
+      render();
+    }, (err) => {
+      console.warn('Erro Firebase, usando local:', err);
+      setSyncStatus('offline');
+      if (!tasks.length) seedDemo();
+      render();
+    });
+  } else {
+    setSyncStatus('local');
+    if (!tasks.length) seedDemo();
+  }
 }
+
 function save() {
   localStorage.setItem('fazenda_tasks', JSON.stringify(tasks));
+  const fb = window.__firebase;
+  if (fb && fb.firebaseReady) {
+    setSyncStatus('syncing');
+    fb.set(fb.dbRef, tasks)
+      .then(() => setSyncStatus('online'))
+      .catch((e) => { console.warn('Erro ao salvar na nuvem:', e); setSyncStatus('offline'); });
+  }
+}
+
+function setSyncStatus(status) {
+  const el = document.getElementById('syncIndicator');
+  if (!el) return;
+  const map = {
+    online:  { text: '☁️ Sincronizado', color: '#3D6B3A' },
+    syncing: { text: '🔄 Sincronizando...', color: '#C77A1A' },
+    offline: { text: '⚠️ Sem conexão (salvo só aqui)', color: '#B23A2E' },
+    local:   { text: '💾 Salvando só neste aparelho', color: '#8C7B65' },
+  };
+  const s = map[status] || map.local;
+  el.textContent = s.text;
+  el.style.color = s.color;
 }
 
 function seedDemo() {
@@ -879,8 +954,24 @@ function exportICS() {
 
 // ── INIT ────────────────────────────────────────────────────────────────────
 populateMonthSelects();
-load();
-render();
+
+function startApp() {
+  load();
+  render();
+}
+
+if (window.__firebaseLoaded) {
+  startApp();
+} else {
+  let started = false;
+  window.addEventListener('firebase-ready', () => {
+    if (!started) { started = true; startApp(); }
+  });
+  // Fallback: se o módulo não carregar em 2s (offline, bloqueio, etc.), inicia sem nuvem
+  setTimeout(() => {
+    if (!started) { started = true; startApp(); }
+  }, 2000);
+}
 </script>
 </body>
 </html>
