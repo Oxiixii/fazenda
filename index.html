@@ -1,0 +1,886 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Planejador da Fazenda</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=Inter:wght@400;500;600&display=swap');
+
+  :root {
+    --soil:    #2C1A0E;
+    --clay:    #7A3B1E;
+    --straw:   #D4A843;
+    --sky:     #4A7FA5;
+    --grass:   #3D6B3A;
+    --cream:   #F5EDD8;
+    --fog:     #EAE0CC;
+    --ink:     #1A1208;
+    --muted:   #8C7B65;
+    --done:    #3D6B3A;
+    --late:    #B23A2E;
+    --warn:    #C77A1A;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Inter', sans-serif;
+    background: var(--cream);
+    color: var(--ink);
+    min-height: 100vh;
+  }
+
+  /* ── HEADER ── */
+  header {
+    background: var(--soil);
+    color: var(--cream);
+    padding: 18px 24px 14px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+  }
+  header h1 {
+    font-family: 'DM Serif Display', serif;
+    font-size: 1.4rem;
+    letter-spacing: 0.02em;
+    line-height: 1;
+  }
+  header small {
+    font-size: 0.72rem;
+    color: var(--straw);
+    display: block;
+    margin-top: 3px;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+  }
+  .btn-new {
+    background: var(--straw);
+    color: var(--soil);
+    border: none;
+    border-radius: 6px;
+    padding: 8px 16px;
+    font-family: 'Inter', sans-serif;
+    font-weight: 600;
+    font-size: 0.85rem;
+    cursor: pointer;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+  .btn-new:hover { background: #e0b545; }
+  .btn-cal {
+    background: rgba(255,255,255,0.12);
+    color: var(--cream);
+    border: 1px solid rgba(255,255,255,0.25);
+    border-radius: 6px;
+    padding: 8px 11px;
+    font-size: 1rem;
+    cursor: pointer;
+    flex-shrink: 0;
+  }
+  .btn-cal:hover { background: rgba(255,255,255,0.22); }
+
+  /* ── FILTERS ── */
+  .filters {
+    background: var(--fog);
+    border-bottom: 1px solid #D5C9B0;
+    padding: 10px 20px;
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+  .filter-btn {
+    background: transparent;
+    border: 1px solid #C0B09A;
+    border-radius: 20px;
+    padding: 4px 13px;
+    font-size: 0.78rem;
+    font-family: 'Inter', sans-serif;
+    cursor: pointer;
+    color: var(--muted);
+    transition: all 0.15s;
+  }
+  .filter-btn.active {
+    background: var(--soil);
+    color: var(--cream);
+    border-color: var(--soil);
+  }
+  .filter-btn:hover:not(.active) { border-color: var(--clay); color: var(--clay); }
+
+  .search-box {
+    margin-left: auto;
+    border: 1px solid #C0B09A;
+    border-radius: 6px;
+    padding: 5px 10px;
+    font-family: 'Inter', sans-serif;
+    font-size: 0.8rem;
+    background: white;
+    color: var(--ink);
+    width: 160px;
+  }
+
+  /* ── MONTH COLUMNS ── */
+  .board {
+    padding: 16px;
+    display: flex;
+    gap: 12px;
+    overflow-x: auto;
+    align-items: flex-start;
+    min-height: calc(100vh - 120px);
+  }
+
+  .month-col {
+    flex: 0 0 260px;
+    background: white;
+    border-radius: 10px;
+    border: 1px solid #DDD0B8;
+    overflow: hidden;
+  }
+
+  .month-header {
+    padding: 10px 14px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .month-header.past   { background: #EDE5D5; }
+  .month-header.current{ background: var(--soil); color: var(--cream); }
+  .month-header.future { background: #EAF0F5; }
+
+  .month-name {
+    font-family: 'DM Serif Display', serif;
+    font-size: 1.05rem;
+  }
+  .month-count {
+    font-size: 0.72rem;
+    font-weight: 600;
+    background: rgba(255,255,255,0.22);
+    border-radius: 10px;
+    padding: 2px 8px;
+  }
+  .month-header.past .month-count,
+  .month-header.future .month-count {
+    background: rgba(0,0,0,0.08);
+    color: var(--muted);
+  }
+
+  .task-list {
+    padding: 10px 10px 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 7px;
+    min-height: 60px;
+  }
+
+  /* ── TASK CARD ── */
+  .task-card {
+    background: var(--cream);
+    border-radius: 7px;
+    border-left: 4px solid var(--muted);
+    padding: 9px 11px;
+    cursor: pointer;
+    position: relative;
+  }
+  .task-card:hover { filter: brightness(0.97); }
+  .task-card.done  { opacity: 0.5; border-left-color: var(--done); }
+  .task-card.late  { border-left-color: var(--late); }
+  .task-card.warn  { border-left-color: var(--warn); }
+
+  .task-card .tag {
+    display: inline-block;
+    font-size: 0.65rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    padding: 2px 7px;
+    border-radius: 10px;
+    margin-bottom: 5px;
+  }
+  .tag-infra     { background: #F0E0C8; color: #7A3B1E; }
+  .tag-animal    { background: #D4EDD4; color: #2A5428; }
+  .tag-pasto     { background: #D8ECD8; color: #3D6B3A; }
+  .tag-equipe    { background: #E0E8F5; color: #2A4F7A; }
+  .tag-maquina   { background: #F5E8D0; color: #7A5020; }
+  .tag-sanidade  { background: #F0D8D8; color: #8B2222; }
+  .tag-outros    { background: #EBEBEB; color: #555; }
+
+  .task-title {
+    font-size: 0.87rem;
+    font-weight: 600;
+    line-height: 1.35;
+    margin-bottom: 4px;
+    padding-right: 20px;
+  }
+  .task-title.done-text { text-decoration: line-through; }
+
+  .task-meta {
+    font-size: 0.72rem;
+    color: var(--muted);
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+  .task-meta span { display: flex; align-items: center; gap: 3px; }
+
+  .task-check {
+    position: absolute;
+    top: 9px;
+    right: 9px;
+    width: 18px;
+    height: 18px;
+    border: 2px solid #C0B09A;
+    border-radius: 4px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: white;
+  }
+  .task-check.checked {
+    background: var(--done);
+    border-color: var(--done);
+    color: white;
+  }
+  .task-check svg { display: none; }
+  .task-check.checked svg { display: block; }
+
+  .empty-col {
+    text-align: center;
+    color: #C0B09A;
+    font-size: 0.78rem;
+    padding: 16px 0 8px;
+  }
+
+  /* ── MODAL ── */
+  .overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(20,10,0,0.55);
+    z-index: 100;
+    align-items: center;
+    justify-content: center;
+    padding: 16px;
+  }
+  .overlay.open { display: flex; }
+
+  .modal {
+    background: var(--cream);
+    border-radius: 12px;
+    width: 100%;
+    max-width: 440px;
+    padding: 24px;
+    box-shadow: 0 12px 40px rgba(0,0,0,0.3);
+    max-height: 90vh;
+    overflow-y: auto;
+  }
+  .modal h2 {
+    font-family: 'DM Serif Display', serif;
+    font-size: 1.2rem;
+    margin-bottom: 18px;
+    color: var(--soil);
+  }
+
+  .form-group { margin-bottom: 14px; }
+  .form-group label {
+    display: block;
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 5px;
+  }
+  .form-group input,
+  .form-group select,
+  .form-group textarea {
+    width: 100%;
+    border: 1px solid #C8B89A;
+    border-radius: 7px;
+    padding: 9px 12px;
+    font-family: 'Inter', sans-serif;
+    font-size: 0.88rem;
+    background: white;
+    color: var(--ink);
+  }
+  .form-group textarea { resize: vertical; min-height: 70px; }
+  .form-group input:focus,
+  .form-group select:focus,
+  .form-group textarea:focus {
+    outline: 2px solid var(--straw);
+    border-color: var(--straw);
+  }
+
+  .form-row { display: flex; gap: 12px; }
+  .form-row .form-group { flex: 1; }
+
+  .modal-actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 20px;
+    justify-content: flex-end;
+  }
+  .btn-cancel {
+    background: transparent;
+    border: 1px solid #C8B89A;
+    border-radius: 7px;
+    padding: 9px 18px;
+    font-family: 'Inter', sans-serif;
+    font-size: 0.86rem;
+    cursor: pointer;
+    color: var(--muted);
+  }
+  .btn-save {
+    background: var(--soil);
+    color: var(--cream);
+    border: none;
+    border-radius: 7px;
+    padding: 9px 20px;
+    font-family: 'Inter', sans-serif;
+    font-weight: 600;
+    font-size: 0.86rem;
+    cursor: pointer;
+  }
+  .btn-save:hover { background: var(--clay); }
+  .btn-delete {
+    background: transparent;
+    border: 1px solid #E0A0A0;
+    color: var(--late);
+    border-radius: 7px;
+    padding: 9px 14px;
+    font-family: 'Inter', sans-serif;
+    font-size: 0.82rem;
+    cursor: pointer;
+    margin-right: auto;
+  }
+
+  /* ── DETAIL MODAL ── */
+  .detail-section {
+    background: white;
+    border-radius: 7px;
+    padding: 12px 14px;
+    margin-bottom: 12px;
+    font-size: 0.86rem;
+    line-height: 1.6;
+    color: var(--ink);
+    white-space: pre-wrap;
+  }
+  .detail-label {
+    font-size: 0.72rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--muted);
+    margin-bottom: 4px;
+  }
+
+  /* ── STATUS BAR ── */
+  .status-bar {
+    background: var(--fog);
+    border-top: 1px solid #D5C9B0;
+    padding: 8px 20px;
+    display: flex;
+    gap: 20px;
+    font-size: 0.74rem;
+    color: var(--muted);
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+  }
+  .status-bar span { display: flex; align-items: center; gap: 5px; }
+  .dot { width: 8px; height: 8px; border-radius: 50%; }
+  .dot-done { background: var(--done); }
+  .dot-late { background: var(--late); }
+  .dot-warn { background: var(--warn); }
+  .dot-open { background: var(--muted); }
+
+  @media(max-width: 600px) {
+    .board { padding: 10px; }
+    .filters { padding: 8px 12px; }
+    .search-box { width: 120px; }
+    .status-bar { gap: 10px; font-size: 0.68rem; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div>
+    <h1>🌾 Planejador da Fazenda</h1>
+    <small>Organização mensal de tarefas</small>
+  </div>
+  <div style="display:flex;gap:8px;flex-shrink:0">
+    <button class="btn-cal" onclick="exportICS()">📅 Calendário</button>
+    <button class="btn-new" onclick="openNew()">+ Nova Tarefa</button>
+  </div>
+</header>
+
+<div class="filters">
+  <button class="filter-btn active" onclick="setFilter('all', this)">Todas</button>
+  <button class="filter-btn" onclick="setFilter('open', this)">Pendentes</button>
+  <button class="filter-btn" onclick="setFilter('done', this)">Concluídas</button>
+  <button class="filter-btn" onclick="setFilter('late', this)">Atrasadas</button>
+  <input class="search-box" type="text" placeholder="Buscar tarefa..." oninput="setSearch(this.value)">
+</div>
+
+<div class="board" id="board"></div>
+
+<div class="status-bar" id="statusBar"></div>
+
+<!-- FORM MODAL -->
+<div class="overlay" id="formOverlay" onclick="closeIfOverlay(event, 'formOverlay')">
+  <div class="modal">
+    <h2 id="formTitle">Nova Tarefa</h2>
+    <div class="form-group">
+      <label>Título da Tarefa *</label>
+      <input type="text" id="fTitle" placeholder="Ex: Recuperar estrada da porteira norte">
+    </div>
+    <div class="form-group">
+      <label>Detalhe / O que precisa ser feito</label>
+      <textarea id="fDesc" placeholder="Descreva o que exatamente precisa ser feito, materiais, responsável..."></textarea>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>Categoria</label>
+        <select id="fCat">
+          <option value="infra">🏗 Infraestrutura</option>
+          <option value="animal">🐄 Animal</option>
+          <option value="pasto">🌿 Pasto</option>
+          <option value="maquina">🚜 Máquina / Veículo</option>
+          <option value="equipe">👷 Equipe</option>
+          <option value="sanidade">💉 Sanidade</option>
+          <option value="outros">📋 Outros</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Prioridade</label>
+        <select id="fPrio">
+          <option value="alta">🔴 Alta</option>
+          <option value="media">🟡 Média</option>
+          <option value="baixa">🟢 Baixa</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>Mês de início</label>
+        <select id="fMonthStart"></select>
+      </div>
+      <div class="form-group">
+        <label>Prazo (mês final)</label>
+        <select id="fMonthEnd"></select>
+      </div>
+    </div>
+    <div class="form-group">
+      <label>Fazenda / Local</label>
+      <input type="text" id="fLocal" placeholder="Ex: Fazenda Boa Vista, Curral 3...">
+    </div>
+    <div class="form-group">
+      <label>Responsável</label>
+      <input type="text" id="fResp" placeholder="Ex: Pedrinho, empreiteiro, eu mesmo...">
+    </div>
+    <div class="modal-actions">
+      <button class="btn-delete" id="btnDelete" style="display:none" onclick="deleteTask()">🗑 Excluir</button>
+      <button class="btn-cancel" onclick="closeModal('formOverlay')">Cancelar</button>
+      <button class="btn-save" onclick="saveTask()">Salvar</button>
+    </div>
+  </div>
+</div>
+
+<!-- DETAIL MODAL -->
+<div class="overlay" id="detailOverlay" onclick="closeIfOverlay(event, 'detailOverlay')">
+  <div class="modal" id="detailContent"></div>
+</div>
+
+<script>
+// ── STATE ──────────────────────────────────────────────────────────────────
+const MONTHS = [
+  { id: 6,  label: 'Junho' },
+  { id: 7,  label: 'Julho' },
+  { id: 8,  label: 'Agosto' },
+  { id: 9,  label: 'Setembro' },
+  { id: 10, label: 'Outubro' },
+  { id: 11, label: 'Novembro' },
+  { id: 12, label: 'Dezembro' },
+  { id: 1,  label: 'Janeiro' },
+  { id: 2,  label: 'Fevereiro' },
+  { id: 3,  label: 'Março' },
+];
+
+const TODAY_MONTH = 6; // June 2026
+
+const CATS = {
+  infra:   { label: 'Infraestrutura', cls: 'tag-infra' },
+  animal:  { label: 'Animal',         cls: 'tag-animal' },
+  pasto:   { label: 'Pasto',          cls: 'tag-pasto' },
+  maquina: { label: 'Máquina',        cls: 'tag-maquina' },
+  equipe:  { label: 'Equipe',         cls: 'tag-equipe' },
+  sanidade:{ label: 'Sanidade',       cls: 'tag-sanidade' },
+  outros:  { label: 'Outros',         cls: 'tag-outros' },
+};
+
+const PRIOS = {
+  alta:  '🔴',
+  media: '🟡',
+  baixa: '🟢',
+};
+
+let tasks = [];
+let editId = null;
+let filterMode = 'all';
+let searchText = '';
+
+function load() {
+  try { tasks = JSON.parse(localStorage.getItem('fazenda_tasks') || '[]'); } catch { tasks = []; }
+  if (!tasks.length) seedDemo();
+}
+function save() {
+  localStorage.setItem('fazenda_tasks', JSON.stringify(tasks));
+}
+
+function seedDemo() {
+  tasks = [
+    { id: 't1', title: 'Recuperar estrada da porteira norte', desc: 'Estrada com buracos e erosão. Precisa de motoniveladora + cascalho.\nAproveitando a seca antes de setembro.', cat: 'infra', prio: 'alta', monthStart: 6, monthEnd: 9, local: 'Fazenda Boa Vista', resp: 'Empreiteiro Zé', done: false },
+    { id: 't2', title: 'Formiga nos cochos do curral 2', desc: 'Formigueiro embaixo do cocho. Tratar com iscas antes da próxima vacinação.', cat: 'sanidade', prio: 'media', monthStart: 6, monthEnd: 7, local: 'Curral 2', resp: 'Pedrinho', done: false },
+    { id: 't3', title: 'Manutenção do trator Valtra', desc: 'Trocar filtros, óleo e verificar freios. Última manutenção faz 6 meses.', cat: 'maquina', prio: 'alta', monthStart: 7, monthEnd: 7, local: 'Galpão mecânico', resp: 'Mecânico externo', done: false },
+    { id: 't4', title: 'Reforma do bebedouro do piquete 5', desc: 'Bebedouro rachado, perdendo água. Substituir por boia nova.', cat: 'infra', prio: 'media', monthStart: 7, monthEnd: 8, local: 'Piquete 5', resp: 'Pedrinho', done: false },
+    { id: 't5', title: 'Capina e roçada da faixa de aceiro', desc: 'Aceiro ao longo da divisa leste. Roçadeira + capina manual nas pedras.', cat: 'pasto', prio: 'alta', monthStart: 8, monthEnd: 9, local: 'Limite leste', resp: 'Turma do Antônio', done: false },
+    { id: 't6', title: 'Vacinação aftosa (2ª dose)', desc: 'Lembrar de solicitar NF e protocolo da vacina no escritório.', cat: 'sanidade', prio: 'alta', monthStart: 9, monthEnd: 9, local: 'Todas as fazendas', resp: 'Eu + equipe', done: false },
+  ];
+  save();
+}
+
+// ── MONTH INDEX ─────────────────────────────────────────────────────────────
+// Converts month id to ordinal for comparison (Jun2026=0, Jul=1, ...)
+function monthOrd(id) {
+  const base = [6,7,8,9,10,11,12,1,2,3];
+  return base.indexOf(id);
+}
+
+function taskStatus(task) {
+  if (task.done) return 'done';
+  const endOrd = monthOrd(task.monthEnd);
+  const nowOrd = monthOrd(TODAY_MONTH);
+  if (endOrd < nowOrd) return 'late';
+  if (endOrd === nowOrd) return 'warn';
+  return 'open';
+}
+
+// ── RENDER ──────────────────────────────────────────────────────────────────
+function render() {
+  const board = document.getElementById('board');
+  board.innerHTML = '';
+
+  const filtered = tasks.filter(t => {
+    if (searchText && !t.title.toLowerCase().includes(searchText.toLowerCase()) &&
+        !t.desc?.toLowerCase().includes(searchText.toLowerCase())) return false;
+    if (filterMode === 'done') return t.done;
+    if (filterMode === 'open') return !t.done;
+    if (filterMode === 'late') return taskStatus(t) === 'late';
+    return true;
+  });
+
+  MONTHS.forEach(m => {
+    // Tasks that include this month in their span
+    const col = filtered.filter(t => {
+      const s = monthOrd(t.monthStart), e = monthOrd(t.monthEnd), cur = monthOrd(m.id);
+      return cur >= s && cur <= e;
+    });
+
+    const isNow = m.id === TODAY_MONTH;
+    const isPast = monthOrd(m.id) < monthOrd(TODAY_MONTH);
+
+    const div = document.createElement('div');
+    div.className = 'month-col';
+    div.innerHTML = `
+      <div class="month-header ${isNow ? 'current' : isPast ? 'past' : 'future'}">
+        <span class="month-name">${m.label}</span>
+        <span class="month-count">${col.length}</span>
+      </div>
+      <div class="task-list" id="list-${m.id}">
+        ${col.length === 0 ? '<div class="empty-col">Nenhuma tarefa</div>' : ''}
+      </div>
+    `;
+    board.appendChild(div);
+
+    const list = div.querySelector('.task-list');
+    col.forEach(t => {
+      const st = taskStatus(t);
+      const cat = CATS[t.cat] || CATS.outros;
+      const card = document.createElement('div');
+      card.className = `task-card ${st}`;
+      card.innerHTML = `
+        <span class="tag ${cat.cls}">${cat.label}</span>
+        <div class="task-title ${t.done ? 'done-text' : ''}">${escHtml(t.title)}</div>
+        <div class="task-meta">
+          <span>${PRIOS[t.prio] || ''} ${t.prio.charAt(0).toUpperCase()+t.prio.slice(1)}</span>
+          ${t.resp ? `<span>👤 ${escHtml(t.resp)}</span>` : ''}
+          ${t.local ? `<span>📍 ${escHtml(t.local)}</span>` : ''}
+        </div>
+        <div class="task-check ${t.done ? 'checked' : ''}" onclick="toggleDone(event,'${t.id}')">
+          <svg width="11" height="9" viewBox="0 0 11 9" fill="none">
+            <path d="M1 4L4.5 7.5L10 1" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </div>
+      `;
+      card.addEventListener('click', () => openDetail(t.id));
+      list.appendChild(card);
+    });
+  });
+
+  renderStatus();
+}
+
+function renderStatus() {
+  const done = tasks.filter(t => t.done).length;
+  const late = tasks.filter(t => taskStatus(t) === 'late').length;
+  const warn = tasks.filter(t => taskStatus(t) === 'warn').length;
+  const open = tasks.filter(t => taskStatus(t) === 'open').length;
+  document.getElementById('statusBar').innerHTML = `
+    <span><span class="dot dot-open"></span> ${open} abertas</span>
+    <span><span class="dot dot-warn"></span> ${warn} vencem este mês</span>
+    <span><span class="dot dot-late"></span> ${late} atrasadas</span>
+    <span><span class="dot dot-done"></span> ${done} concluídas</span>
+  `;
+}
+
+// ── FORM MODAL ──────────────────────────────────────────────────────────────
+function populateMonthSelects() {
+  ['fMonthStart', 'fMonthEnd'].forEach(id => {
+    const sel = document.getElementById(id);
+    sel.innerHTML = MONTHS.map(m => `<option value="${m.id}">${m.label}</option>`).join('');
+  });
+}
+
+function openNew() {
+  editId = null;
+  document.getElementById('formTitle').textContent = 'Nova Tarefa';
+  document.getElementById('fTitle').value = '';
+  document.getElementById('fDesc').value = '';
+  document.getElementById('fCat').value = 'infra';
+  document.getElementById('fPrio').value = 'alta';
+  document.getElementById('fLocal').value = '';
+  document.getElementById('fResp').value = '';
+  document.getElementById('fMonthStart').value = TODAY_MONTH;
+  document.getElementById('fMonthEnd').value = TODAY_MONTH;
+  document.getElementById('btnDelete').style.display = 'none';
+  document.getElementById('formOverlay').classList.add('open');
+  document.getElementById('fTitle').focus();
+}
+
+function openEdit(id) {
+  const t = tasks.find(x => x.id === id);
+  if (!t) return;
+  editId = id;
+  document.getElementById('formTitle').textContent = 'Editar Tarefa';
+  document.getElementById('fTitle').value = t.title;
+  document.getElementById('fDesc').value = t.desc || '';
+  document.getElementById('fCat').value = t.cat;
+  document.getElementById('fPrio').value = t.prio;
+  document.getElementById('fLocal').value = t.local || '';
+  document.getElementById('fResp').value = t.resp || '';
+  document.getElementById('fMonthStart').value = t.monthStart;
+  document.getElementById('fMonthEnd').value = t.monthEnd;
+  document.getElementById('btnDelete').style.display = 'inline-block';
+  closeModal('detailOverlay');
+  document.getElementById('formOverlay').classList.add('open');
+}
+
+function saveTask() {
+  const title = document.getElementById('fTitle').value.trim();
+  if (!title) { alert('Coloca o título da tarefa!'); return; }
+  const ms = parseInt(document.getElementById('fMonthStart').value);
+  const me = parseInt(document.getElementById('fMonthEnd').value);
+  if (monthOrd(me) < monthOrd(ms)) { alert('O prazo final não pode ser antes do início!'); return; }
+
+  if (editId) {
+    const t = tasks.find(x => x.id === editId);
+    if (t) {
+      t.title = title;
+      t.desc  = document.getElementById('fDesc').value.trim();
+      t.cat   = document.getElementById('fCat').value;
+      t.prio  = document.getElementById('fPrio').value;
+      t.local = document.getElementById('fLocal').value.trim();
+      t.resp  = document.getElementById('fResp').value.trim();
+      t.monthStart = ms;
+      t.monthEnd   = me;
+    }
+  } else {
+    tasks.push({
+      id: 't' + Date.now(),
+      title,
+      desc:  document.getElementById('fDesc').value.trim(),
+      cat:   document.getElementById('fCat').value,
+      prio:  document.getElementById('fPrio').value,
+      local: document.getElementById('fLocal').value.trim(),
+      resp:  document.getElementById('fResp').value.trim(),
+      monthStart: ms,
+      monthEnd:   me,
+      done: false,
+    });
+  }
+  save();
+  closeModal('formOverlay');
+  render();
+}
+
+function deleteTask() {
+  if (!confirm('Excluir essa tarefa?')) return;
+  tasks = tasks.filter(x => x.id !== editId);
+  save();
+  closeModal('formOverlay');
+  render();
+}
+
+function toggleDone(e, id) {
+  e.stopPropagation();
+  const t = tasks.find(x => x.id === id);
+  if (t) { t.done = !t.done; save(); render(); }
+}
+
+// ── DETAIL MODAL ────────────────────────────────────────────────────────────
+function openDetail(id) {
+  const t = tasks.find(x => x.id === id);
+  if (!t) return;
+  const st = taskStatus(t);
+  const cat = CATS[t.cat] || CATS.outros;
+  const startLabel = MONTHS.find(m => m.id === t.monthStart)?.label || '';
+  const endLabel   = MONTHS.find(m => m.id === t.monthEnd)?.label || '';
+  const stLabel = { done: '✅ Concluída', late: '🔴 Atrasada', warn: '⚠️ Vence este mês', open: '🟢 Em andamento' };
+
+  document.getElementById('detailContent').innerHTML = `
+    <h2 style="margin-bottom:6px">${escHtml(t.title)}</h2>
+    <span class="tag ${cat.cls}" style="margin-bottom:16px;display:inline-block">${cat.label}</span>
+
+    <div class="detail-label">Status</div>
+    <div class="detail-section" style="font-weight:600">${stLabel[st]}</div>
+
+    ${t.desc ? `<div class="detail-label">Detalhe</div><div class="detail-section">${escHtml(t.desc)}</div>` : ''}
+
+    <div class="detail-label">Prazo</div>
+    <div class="detail-section">${startLabel} → ${endLabel} &nbsp;·&nbsp; ${PRIOS[t.prio]} Prioridade ${t.prio}</div>
+
+    ${t.local ? `<div class="detail-label">Local</div><div class="detail-section">📍 ${escHtml(t.local)}</div>` : ''}
+    ${t.resp  ? `<div class="detail-label">Responsável</div><div class="detail-section">👤 ${escHtml(t.resp)}</div>` : ''}
+
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="toggleDoneFromDetail('${t.id}')">
+        ${t.done ? '↩ Reabrir' : '✅ Marcar Feito'}
+      </button>
+      <button class="btn-save" onclick="openEdit('${t.id}')">✏️ Editar</button>
+    </div>
+  `;
+  document.getElementById('detailOverlay').classList.add('open');
+}
+
+function toggleDoneFromDetail(id) {
+  const t = tasks.find(x => x.id === id);
+  if (t) { t.done = !t.done; save(); render(); closeModal('detailOverlay'); }
+}
+
+// ── FILTERS ─────────────────────────────────────────────────────────────────
+function setFilter(mode, el) {
+  filterMode = mode;
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  el.classList.add('active');
+  render();
+}
+function setSearch(v) { searchText = v; render(); }
+
+// ── UTILS ───────────────────────────────────────────────────────────────────
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+function closeIfOverlay(e, id) { if (e.target === e.currentTarget) closeModal(id); }
+function escHtml(s) { return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+// ── ICS EXPORT ──────────────────────────────────────────────────────────────
+function exportICS() {
+  const pending = tasks.filter(t => !t.done);
+  if (!pending.length) { alert('Nenhuma tarefa pendente para exportar.'); return; }
+
+  // Year map: months >= 6 are 2026, months < 6 are 2027
+  function toYear(mId) { return mId >= 6 ? 2026 : 2027; }
+
+  function icsDate(mId) {
+    const y = toYear(mId);
+    const m = String(mId).padStart(2, '0');
+    // Last day of month as deadline
+    const lastDay = new Date(y, mId, 0).getDate();
+    return `${y}${m}${String(lastDay).padStart(2,'0')}`;
+  }
+
+  function icsDateStart(mId) {
+    const y = toYear(mId);
+    const m = String(mId).padStart(2, '0');
+    return `${y}${m}01`;
+  }
+
+  function icsStamp() {
+    return new Date().toISOString().replace(/[-:]/g,'').split('.')[0] + 'Z';
+  }
+
+  function icsText(s) {
+    return (s || '').replace(/\n/g, '\\n').replace(/,/g, '\\,').replace(/;/g, '\\;');
+  }
+
+  const PRIO_MAP = { alta: 'HIGH', media: 'MEDIUM', baixa: 'LOW' };
+  const CAT_MAP = {
+    infra: 'Infraestrutura', animal: 'Animal', pasto: 'Pasto',
+    maquina: 'Máquina', equipe: 'Equipe', sanidade: 'Sanidade', outros: 'Outros'
+  };
+
+  let ics = [
+    'BEGIN:VCALENDAR',
+    'VERSION:2.0',
+    'PRODID:-//Planejador Fazenda//PT',
+    'CALSCALE:GREGORIAN',
+    'X-WR-CALNAME:Tarefas da Fazenda',
+  ];
+
+  pending.forEach(t => {
+    const cat = CAT_MAP[t.cat] || 'Outros';
+    const descParts = [];
+    if (t.desc)  descParts.push(t.desc);
+    if (t.local) descParts.push('Local: ' + t.local);
+    if (t.resp)  descParts.push('Responsável: ' + t.resp);
+    descParts.push('Prioridade: ' + t.prio);
+    descParts.push('Categoria: ' + cat);
+
+    ics.push('BEGIN:VEVENT');
+    ics.push('UID:' + t.id + '@fazenda');
+    ics.push('DTSTAMP:' + icsStamp());
+    ics.push('DTSTART;VALUE=DATE:' + icsDateStart(t.monthStart));
+    ics.push('DTEND;VALUE=DATE:' + icsDate(t.monthEnd));
+    ics.push('SUMMARY:' + icsText('[' + cat + '] ' + t.title));
+    ics.push('DESCRIPTION:' + icsText(descParts.join('\n')));
+    if (t.local) ics.push('LOCATION:' + icsText(t.local));
+    ics.push('PRIORITY:' + (PRIO_MAP[t.prio] === 'HIGH' ? 1 : PRIO_MAP[t.prio] === 'MEDIUM' ? 5 : 9));
+    // Alarm: 1 day before deadline month end
+    ics.push('BEGIN:VALARM');
+    ics.push('TRIGGER:-P1D');
+    ics.push('ACTION:DISPLAY');
+    ics.push('DESCRIPTION:Prazo amanhã: ' + icsText(t.title));
+    ics.push('END:VALARM');
+    ics.push('END:VEVENT');
+  });
+
+  ics.push('END:VCALENDAR');
+
+  const blob = new Blob([ics.join('\r\n')], { type: 'text/calendar;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'tarefas-fazenda.ics';
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+// ── INIT ────────────────────────────────────────────────────────────────────
+populateMonthSelects();
+load();
+render();
+</script>
+</body>
+</html>
