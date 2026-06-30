@@ -1,0 +1,168 @@
+BEGIN:VCALENDAR
+VERSION:2.0
+PRODID:-//Planejador Fazenda//PT
+CALSCALE:GREGORIAN
+X-WR-CALNAME:Tarefas da Fazenda
+BEGIN:VEVENT
+UID:t1782819135261@fazenda
+DTSTAMP:20260630T130322Z
+DTSTART;VALUE=DATE:20260601
+DTEND;VALUE=DATE:20260930
+SUMMARY:[Animal] TRATO 0\,3 + 0\,5
+DESCRIPTION:Tratar a cabeceira da fazenda com o 0\,5\nSepara o 2º e 3º melhores lotes e tratar com o 0\,3\nLocal: Fazenda Touro Peru\nPrioridade: alta\nCategoria: Animal
+LOCATION:Fazenda Touro Peru
+PRIORITY:1
+BEGIN:VALARM
+TRIGGER:-P1D
+ACTION:DISPLAY
+DESCRIPTION:Prazo amanhã: TRATO 0\,3 + 0\,5
+END:VALARM
+END:VEVENT
+BEGIN:VEVENT
+UID:t1782819179891@fazenda
+DTSTAMP:20260630T130322Z
+DTSTART;VALUE=DATE:20260601
+DTEND;VALUE=DATE:20260731
+SUMMARY:[Pasto] Cotar calcário
+DESCRIPTION:Local: Fazenda Touro Peru\nResponsável: EU\nPrioridade: alta\nCategoria: Pasto
+LOCATION:Fazenda Touro Peru
+PRIORITY:1
+BEGIN:VALARM
+TRIGGER:-P1D
+ACTION:DISPLAY
+DESCRIPTION:Prazo amanhã: Cotar calcário
+END:VALARM
+END:VEVENT
+BEGIN:VEVENT
+UID:t1782819232474@fazenda
+DTSTAMP:20260630T130322Z
+DTSTART;VALUE=DATE:20260801
+DTEND;VALUE=DATE:20260930
+SUMMARY:[Pasto] Roçar Tanzânia Alto
+DESCRIPTION:Roçar Tanzânia que está muito passado e o gato não consegue mais bater\nLocal: Fazenda Touro Peru\nPrioridade: media\nCategoria: Pasto
+LOCATION:Fazenda Touro Peru
+PRIORITY:5
+BEGIN:VALARM
+TRIGGER:-P1D
+ACTION:DISPLAY
+DESCRIPTION:Prazo amanhã: Roçar Tanzânia Alto
+END:VALARM
+END:VEVENT
+BEGIN:VEVENT
+UID:t1782819261363@fazenda
+DTSTAMP:20260630T130322Z
+DTSTART;VALUE=DATE:20260601
+DTEND;VALUE=DATE:20270331
+SUMMARY:[Infraestrutura] Cercar Açudes
+DESCRIPTION:Local: Fazenda Touro Peru\nPrioridade: media\nCategoria: Infraestrutura
+LOCATION:Fazenda Touro Peru
+PRIORITY:5
+BEGIN:VALARM
+TRIGGER:-P1D
+ACTION:DISPLAY
+DESCRIPTION:Prazo amanhã: Cercar Açudes
+END:VALARM
+END:VEVENT
+BEGIN:VEVENT
+UID:t1782819323891@fazenda
+DTSTAMP:20260630T130322Z
+DTSTART;VALUE=DATE:20260701
+DTEND;VALUE=DATE:20260731
+SUMMARY:[Outros] Beto testar usar cloro de piscina no reservatório
+DESCRIPTION:3g para 1000L\nMistura em água antes de colocar\nLocal: Fazenda Touro Peru\nPrioridade: alta\nCategoria: Outros
+LOCATION:Fazenda Touro Peru
+PRIORITY:1
+BEGIN:VALARM
+TRIGGER:-P1D
+ACTION:DISPLAY
+DESCRIPTION:Prazo amanhã: Beto testar usar cloro de piscina no reservatório
+END:VALARM
+END:VEVENT
+BEGIN:VEVENT
+UID:t1782819909999@fazenda
+DTSTAMP:20260630T130322Z
+DTSTART;VALUE=DATE:20260601
+DTEND;VALUE=DATE:20260930
+SUMMARY:[Pasto] Herbicida no toco (catação)
+DESCRIPTION:Local: Fazenda Touro Peru\nResponsável: Empreiteiro\nPrioridade: alta\nCategoria: Pasto
+LOCATION:Fazenda Touro Peru
+PRIORITY:1
+BEGIN:VALARM
+TRIGGER:-P1D
+ACTION:DISPLAY
+DESCRIPTION:Prazo amanhã: Herbicida no toco (catação)
+END:VALARM
+END:VEVENT
+BEGIN:VEVENT
+UID:t1782819947032@fazenda
+DTSTAMP:20260630T130322Z
+DTSTART;VALUE=DATE:20260601
+DTEND;VALUE=DATE:20270331
+SUMMARY:[Máquina] Cotar Plantadeira Pequena Capim
+DESCRIPTION:Responsável: EU\nPrioridade: baixa\nCategoria: Máquina
+PRIORITY:9
+BEGIN:VALARM
+TRIGGER:-P1D
+ACTION:DISPLAY
+DESCRIPTION:Prazo amanhã: Cotar Plantadeira Pequena Capim
+END:VALARM
+END:VEVENT
+BEGIN:VEVENT
+UID:t1782820069793@fazenda
+DTSTAMP:20260630T130322Z
+DTSTART;VALUE=DATE:20260601
+DTEND;VALUE=DATE:20260831
+SUMMARY:[Infraestrutura] Fazer Boca dos Bueiros
+DESCRIPTION:Boca dos bueiros para continuar a fazer e ajeitar a estrada\nLocal: Fazenda Touro Peru\nResponsável: Empreiteiro\nPrioridade: alta\nCategoria: Infraestrutura
+LOCATION:Fazenda Touro Peru
+PRIORITY:1
+BEGIN:VALARM
+TRIGGER:-P1D
+ACTION:DISPLAY
+DESCRIPTION:Prazo amanhã: Fazer Boca dos Bueiros
+END:VALARM
+END:VEVENT
+BEGIN:VEVENT
+UID:t1782820397281@fazenda
+DTSTAMP:20260630T130322Z
+DTSTART;VALUE=DATE:20260601
+DTEND;VALUE=DATE:20270331
+SUMMARY:[Equipe] NÃO PODE JOGAR CRIOLINA JUNTO COM INSETICIDA
+DESCRIPTION:Prioridade: alta\nCategoria: Equipe
+PRIORITY:1
+BEGIN:VALARM
+TRIGGER:-P1D
+ACTION:DISPLAY
+DESCRIPTION:Prazo amanhã: NÃO PODE JOGAR CRIOLINA JUNTO COM INSETICIDA
+END:VALARM
+END:VEVENT
+BEGIN:VEVENT
+UID:t1782820431284@fazenda
+DTSTAMP:20260630T130322Z
+DTSTART;VALUE=DATE:20260601
+DTEND;VALUE=DATE:20260930
+SUMMARY:[Outros] Falar para Casemiro levar os galões vazios embora
+DESCRIPTION:Responsável: EU\nPrioridade: media\nCategoria: Outros
+PRIORITY:5
+BEGIN:VALARM
+TRIGGER:-P1D
+ACTION:DISPLAY
+DESCRIPTION:Prazo amanhã: Falar para Casemiro levar os galões vazios embora
+END:VALARM
+END:VEVENT
+BEGIN:VEVENT
+UID:t1782820932846@fazenda
+DTSTAMP:20260630T130322Z
+DTSTART;VALUE=DATE:20260601
+DTEND;VALUE=DATE:20260731
+SUMMARY:[Outros] INBEEF
+DESCRIPTION:Ver como funciona\, quanto custa\, implementação e etc\nLocal: Fazenda Vera Cruz\nResponsável: EU\nPrioridade: alta\nCategoria: Outros
+LOCATION:Fazenda Vera Cruz
+PRIORITY:1
+BEGIN:VALARM
+TRIGGER:-P1D
+ACTION:DISPLAY
+DESCRIPTION:Prazo amanhã: INBEEF
+END:VALARM
+END:VEVENT
+END:VCALENDAR
