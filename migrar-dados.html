@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Migração - Planejador da Fazenda</title>
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+  import { getDatabase, ref, set, get } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyB-zGsrrIFaPJ8DVIIA5SI88GaM7MGYoyY",
+    authDomain: "fazenda-marcelo.firebaseapp.com",
+    databaseURL: "https://fazenda-marcelo-default-rtdb.firebaseio.com",
+    projectId: "fazenda-marcelo",
+    storageBucket: "fazenda-marcelo.firebasestorage.app",
+    messagingSenderId: "405114144510",
+    appId: "1:405114144510:web:5064a4e1a7fec6ac3787af"
+  };
+
+  const RECOVERED_TASKS = [{"id":"t1782819135261","title":"TRATO 0,3 + 0,5","desc":"Tratar a cabeceira da fazenda com o 0,5\nSepara o 2º e 3º melhores lotes e tratar com o 0,3","cat":"animal","prio":"alta","local":"Fazenda Touro Peru","resp":"","monthStart":6,"monthEnd":9,"done":false},{"id":"t1782819179891","title":"Cotar calcário","desc":"","cat":"pasto","prio":"alta","local":"Fazenda Touro Peru","resp":"EU","monthStart":6,"monthEnd":7,"done":false},{"id":"t1782819232474","title":"Roçar Tanzânia Alto","desc":"Roçar Tanzânia que está muito passado e o gato não consegue mais bater","cat":"pasto","prio":"media","local":"Fazenda Touro Peru","resp":"","monthStart":8,"monthEnd":9,"done":false},{"id":"t1782819261363","title":"Cercar Açudes","desc":"","cat":"infra","prio":"media","local":"Fazenda Touro Peru","resp":"","monthStart":6,"monthEnd":3,"done":false},{"id":"t1782819323891","title":"Beto testar usar cloro de piscina no reservatório","desc":"3g para 1000L\nMistura em água antes de colocar","cat":"outros","prio":"alta","local":"Fazenda Touro Peru","resp":"","monthStart":7,"monthEnd":7,"done":false},{"id":"t1782819909999","title":"Herbicida no toco (catação)","desc":"","cat":"pasto","prio":"alta","local":"Fazenda Touro Peru","resp":"Empreiteiro","monthStart":6,"monthEnd":9,"done":false},{"id":"t1782819947032","title":"Cotar Plantadeira Pequena Capim","desc":"","cat":"maquina","prio":"baixa","local":"","resp":"EU","monthStart":6,"monthEnd":3,"done":false},{"id":"t1782820069793","title":"Fazer Boca dos Bueiros","desc":"Boca dos bueiros para continuar a fazer e ajeitar a estrada","cat":"infra","prio":"alta","local":"Fazenda Touro Peru","resp":"Empreiteiro","monthStart":6,"monthEnd":8,"done":false},{"id":"t1782820397281","title":"NÃO PODE JOGAR CRIOLINA JUNTO COM INSETICIDA","desc":"","cat":"equipe","prio":"alta","local":"","resp":"","monthStart":6,"monthEnd":3,"done":false},{"id":"t1782820431284","title":"Falar para Casemiro levar os galões vazios embora","desc":"","cat":"outros","prio":"media","local":"","resp":"EU","monthStart":6,"monthEnd":9,"done":false},{"id":"t1782820932846","title":"INBEEF","desc":"Ver como funciona, quanto custa, implementação e etc","cat":"outros","prio":"alta","local":"Fazenda Vera Cruz","resp":"EU","monthStart":6,"monthEnd":7,"done":false}];
+
+  const statusEl = () => document.getElementById('status');
+
+  window.addEventListener('DOMContentLoaded', async () => {
+    try {
+      const app = initializeApp(firebaseConfig);
+      const db = getDatabase(app);
+      const dbRef = ref(db, 'tasks');
+
+      statusEl().textContent = 'Verificando se já existem dados na nuvem...';
+
+      const snapshot = await get(dbRef);
+      const existing = snapshot.val();
+
+      if (existing && existing.length > 0) {
+        statusEl().innerHTML = `⚠️ Já existem ${existing.length} tarefa(s) salvas na nuvem.<br><br>
+          Clique no botão abaixo se quiser <b>substituir</b> pelos dados recuperados (${RECOVERED_TASKS.length} tarefas), ou feche esta página se preferir manter o que já está lá.`;
+        document.getElementById('btnForce').style.display = 'inline-block';
+      } else {
+        statusEl().textContent = 'Nenhum dado na nuvem ainda. Enviando suas ' + RECOVERED_TASKS.length + ' tarefas recuperadas...';
+        await set(dbRef, RECOVERED_TASKS);
+        statusEl().innerHTML = '✅ Pronto! Suas ' + RECOVERED_TASKS.length + ' tarefas foram salvas na nuvem.<br><br>Agora pode abrir o <a href="https://oxiixii.github.io/fazenda/">app normal</a> em qualquer aparelho.';
+      }
+
+      document.getElementById('btnForce').onclick = async () => {
+        statusEl().textContent = 'Substituindo...';
+        await set(dbRef, RECOVERED_TASKS);
+        statusEl().innerHTML = '✅ Substituído! Suas ' + RECOVERED_TASKS.length + ' tarefas recuperadas estão na nuvem agora.<br><br>Agora pode abrir o <a href="https://oxiixii.github.io/fazenda/">app normal</a> em qualquer aparelho.';
+        document.getElementById('btnForce').style.display = 'none';
+      };
+
+    } catch (e) {
+      statusEl().textContent = '❌ Erro: ' + e.message;
+      console.error(e);
+    }
+  });
+</script>
+<style>
+  body { font-family: sans-serif; max-width: 500px; margin: 60px auto; padding: 20px; line-height: 1.6; }
+  #status { background: #f5edd8; padding: 20px; border-radius: 10px; }
+  button { background: #b23a2e; color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; margin-top: 14px; display: none; }
+  a { color: #2C1A0E; font-weight: bold; }
+</style>
+</head>
+<body>
+  <h2>🌾 Migração de dados — Planejador da Fazenda</h2>
+  <div id="status">Carregando...</div>
+  <button id="btnForce">Substituir pelos dados recuperados</button>
+</body>
+</html>
